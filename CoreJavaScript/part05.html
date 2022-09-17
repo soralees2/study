@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+</head>
+<body>
+	<script>
+		console.log("=== 1. 외부 함수의 변수를 참조하는 내부함수(1) ===")
+		var outer = function (){
+			var a = 1;
+			var inner = function(){
+				console.log(++a);
+			};
+			inner();
+		};
+		outer();
+	</script>
+	<br>
+	<script>
+		console.log("=== 2. 외부 함수의 변수를 참조하는 내부함수(2) ===")
+		var outer = function (){
+			var a = 1;
+			var inner = function(){
+				return ++a;
+			};
+			return inner();
+		};
+		var outer2 = outer();
+		console.log(outer2);
+	</script>
+	<br/>
+	<script>
+		console.log("=== 3. 외부 함수의 변수를 참조하는 내부함수(3) ===")
+		var outer = function (){
+			var a = 1;
+			var inner = function(){
+				return ++a;
+			};
+			return inner;
+		};
+		var outer2 = outer();
+		console.log(outer2());
+		console.log(outer2());
+	</script>
+	<br/>
+	<script>
+		console.log("=== 4. return 없이도 클로저가 발생하는 다양한 경우 ===");
+		// (1) setInterval/setTimeout
+		(function(){
+			var a = 0;
+			var intervalId = null;
+			var inner = function(){
+				if(++a >= 10){
+					clearInterval(intervalId);
+				}
+				console.log(a);
+			};
+			intervalId = setInterval(inner, 1000);
+		})();
+		/*
+			별도의 외부객체인 window의 메서드(setTimeout 또는 setInterval)에 전달할 콜백함수 내에서 지역변수를 참조한다.
+		 */
+		// (2) eventListner
+		(function(){
+				var count = 0;
+				var button = document.createElement('button');
+				button.innerText = 'click';
+				button.addEventListener('click', function(){
+					console.log(++count, 'times clicked');
+				});
+				document.body.appendChild(button);
+			})();
+		/*
+			별도의 외부객체인 DOM의 메서드(addListener)에 등록할 handler함수 내부에서 지역변수를 참조한다
+		 */
+
+		// 두 상황 모두 지역변수를 참조하는 내부함수를 외부에 전달했기 때문에 클로저이다.
+	</script>
+	<br/>
+	<script>
+		console.log("=== 5. 클로저와 메모리 관리 ===");
+		// (1) return에 의한 클로저의 메모리 해제
+		var outer = (function(){
+			var a= 1;
+			var inner = function(){
+				return ++a;
+			};
+			return inner;
+		})();
+		console.log(outer());
+		console.log(outer());
+		outer = null;
+
+		// (2) setInterval에 의한 클로저의 메모리 해제
+		(function(){
+			var a = 0;
+			var intervalId = null;
+			var inner = function(){
+				if(++a >= 10){
+					clearInterval(intervalId);
+					inner = null;
+				}
+				console.log(a);
+			};
+			intervalId = setInterval(inner, 1000);
+		})();
+
+		// (3) eventListener에 의한 클로저의 메모리 해제
+		(function(){
+			var count = 0;
+			var button = document.createElement('button');
+			button.innerText = 'click!';
+
+			var clickHandeler = function(){
+				console.log(++count, 'times clicked!');
+				if(count >= 10){
+					button.removeEventListener('click', clickHandeler);
+					clickHandeler = null; // clickHandler 식별자의 함수 참조를 끊음.
+				}
+			};
+			button.addEventListener('click', clickHandeler);
+			document.body.appendChild(button);
+		})();
+	</script>
+	<br/>
+	<script>
+		console.log("=== 6. 콜백 함수와 클로저(1) ===");
+		// 콜백함수를 내부함수로 선언하여 외부변수를 직접 참조하는 방법
+
+		var fruits = ['apple', 'banana', 'peach'];
+		var $ul = document.createElement('ul');
+
+		fruits.forEach(function(fruit) { // 콜백함수 (A) -- 외부변수를 사용하지 않음. 클로저가 없다.
+			var $li = document.createElement('li');
+			$li.innerText = fruit;
+			
+			$li.addEventListener('click', function(){ // 콜백함수 (B) -- 외부 변수 fruit를 참조하므로 클로저가 있다.
+				alert('your choice is ' + fruit);
+			});
+			$ul.appendChild($li);
+		});
+		document.body.appendChild($ul);
+	</script>
+	<br/>
+	<script>
+		console.log("=== 7. 콜백 함수와 클로저(2) ===");
+
+		var fruits = ['apple', 'banana', 'peach'];
+		var $ul = document.createElement('ul');
+
+		var alertFruit = function(fruit){
+			alert('your choice is ' + fruit);
+		}
+
+		fruits.forEach(function(fruit) {
+			var $li = document.createElement('li');
+			$li.innerText = fruit;
+			$li.addEventListener('click', alertFruit);
+			$ul.appendChild($li);
+		});
+		document.body.appendChild($ul);
+		alertFruit(fruits[1]);
+		/* 
+			각 li를 클릭하면 과일명이 아닌 [object MouseEvent] 라는 값이 출력된다.
+			콜백 함수의 인자에 대한 제어권을 addEventListener가 가진 상태이며,
+			addEventListener은 콜백함수를 호출할 때 첫번째 인자에 '이벤트 객체'를 주입하기 때문이다. 
+			이는 bind메서드를 활용하면 해결가능하다.
+		 */
+	</script>
+	<br/>
+	<script>
+		console.log("=== 8. 콜백 함수와 클로저(3) ===");
+		// bind 메서드로 값을 직접 넘겨주었지만 여러 제약사항이 생김.
+
+		var fruits = ['apple', 'banana', 'peach'];
+		var $ul = document.createElement('ul');
+
+		var alertFruit = function(fruit){
+			alert('your choice is ' + fruit);
+		}
+		
+		fruits.forEach(function(fruit) {
+			var $li = document.createElement('li');
+			$li.innerText = fruit;
+			$li.addEventListener('click', alertFruit.bind(null, fruit));
+			$ul.appendChild($li);
+		});
+		document.body.appendChild($ul);
+		// alertFruit(fruits[1]);
+		/* 
+			이렇게 하면 이벤트객체가 인자로 넘어오는 순서가 바뀌는점 및 함수 내부에서의 this가
+			원래의 그것과 달라지는 점을 감안해야한다. 이런 변경사항이 발생하지 않게 "고차 함수"를 활용한다. 
+			이는 함수형 프로그래밍에서 많이 사용됨.
+
+			-- 이에 대한 설명 : bind메서드에서의 첫번째 인자가 바로 새로 바인딩할 this인데, 이 값을 생략할 수가 없기 때문에 
+			-- 일반적으로 원래의 this를 유지하도록 할 수 없는 경우가 많다.
+			-- 또한 예제에서는 두번째 인자에 이벤트 객체가 넘어올 것이다.
+
+		 */
+	</script>
+	<br/>
+	<script>
+		console.log("=== 9. 콜백 함수와 클로저(4) ===");
+		// 콜백함수를 고차함수로 바꿔 클로저를 적극적으로 활용한 방법
+		
+		var fruits = ['apple', 'banana', 'peach'];
+		var $ul = document.createElement('ul');
+
+		var alertFruit = function(fruit){
+			alert('your choice is ' + fruit);
+		}
+
+		var alertFruitBuilder = function(fruit){
+			return function(){
+				alert('your choice is ' + fruit);
+			};
+		};
+
+		fruits.forEach(function(fruit){
+			var $li = document.createElement('li');
+			$li.innerText = fruit;
+			$li.addEventListener('click', alertFruitBuilder(fruit));
+			$ul.appendChild($li);
+		});
+		document.body.appendChild($ul);
+
+		/* 
+			alertFruitBuiler의 함수 내부에서 다시 익명함수를 반환하는데 이 함수가 바로 alertFruit이다.
+			alertFruitBuiler함수를 실행하면서 fruit값을 인자로 전달했다. 
+			이 함수의 실행 결과가 다시 함수가 되며 이렇게 반환된 함수를 리스너에 콜백함수로 전달할 것이다.
+			이 후 클릭이벤트가 발생하면 이 함수의 실행컨텍스트가 열리면서 alertFruitBuilder의 인자로 넘어온 fruitfmf
+			outerEnvironmentReference에 의해 참조할 수 있다. 
+			즉 alertFruitBuilder의 실행결과로 반환된 함수에는 클로저가 존재한다.
+		 */
+	</script>
+	<br/>
+
+
+</body>
+</html>
