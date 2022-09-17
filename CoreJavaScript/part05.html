@@ -162,7 +162,7 @@
 			$ul.appendChild($li);
 		});
 		document.body.appendChild($ul);
-		alertFruit(fruits[1]);
+		// alertFruit(fruits[1]);
 		/* 
 			각 li를 클릭하면 과일명이 아닌 [object MouseEvent] 라는 값이 출력된다.
 			콜백 함수의 인자에 대한 제어권을 addEventListener가 가진 상태이며,
@@ -205,7 +205,7 @@
 	<script>
 		console.log("=== 9. 콜백 함수와 클로저(4) ===");
 		// 콜백함수를 고차함수로 바꿔 클로저를 적극적으로 활용한 방법
-		
+
 		var fruits = ['apple', 'banana', 'peach'];
 		var $ul = document.createElement('ul');
 
@@ -237,7 +237,28 @@
 		 */
 	</script>
 	<br/>
-
+	<script>
+		console.clear();
+	</script>
+	<br/>
+	<script>
+		console.log("=== 13. bind 메서드를 활용한 부분 적용 함수 ===");
+		/* 
+			부분 적용 함수란?
+			n개의 인자를 받는 함수에 미리 m개의 인자만 넘겨 기억시켰다가,
+			나중에 (n-m)개의 인자를 넘기면 비로소 원래 함수의 실행 결과를 얻을수 있게끔 하는 함수이다.
+		 */
+		
+		var add = function(){
+			var result = 0;
+			for( var i= 0; i< arguments.length; i++){
+				result += arguments[i];
+			}
+			return result;
+		};
+		var addPartial = add .bind(null, 1, 2, 3, 4, 5);
+		console.log(addPartial(6, 7, 8, 9, 10)); // 55
+	</script>
 
 </body>
 </html>

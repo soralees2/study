@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+</head>
+<body>
+	<!-- 접근 권한 제어(정보은닉) -->
+	<!-- 
+		* 자동차 경주 게임 규칙 *
+			1) 각 턴마다 주사위를 굴려 나온 숫자(km)만큼 이동한다
+			2) 차량별로 연료량(fuel)과 연비(power)는 무작위로 생성된다
+			3) 남은 연료가 이동할 거리에 필요한 연료보다 부족하면 이동하지 못한다
+			4) 모든 유저가 이동할 수 없는 턴에 게임이 종료된다.
+			5) 게임 종료 시점에 가장 멀리 이동해 있는 사람이 승리한다.
+	 -->
+	<script>
+		console.log("=== 10. 간단한 자동차 객체 ===")
+		var car = {
+			fuel: Math.ceil(Math.random() * 10 + 10 ), // 연료(L)
+			power: Math.ceil(Math.random() * 3 + 2), 	 // 연비(km/L)
+			moved: 0,
+			run: function(){
+				var km = Math.ceil(Math.random * 6);
+				var wasteFuel = km / this.power;
+				if(this.fuel < wasteFuel){
+					console.log('이동 불가');
+					return;
+				}
+				this.fuel -= wasteFuel;
+				this.moved += km;
+				console.log(km + 'km 이동 총 ( ' + this.moved + 'km). 남은 연료: ' + fuel);
+			}
+		};
+		/* 
+			car 변수에 객체를 직접 할당하였다.
+			모두가 run 메서드만 호출한다는 가정 하에는 이정도로만 충분하지만
+			무작위로 정해지는 연료, 연비, 이동거리 등을 마음대로 바꿀 수 있게 된다.
+
+			ex)
+			car.fuel = 10000;
+			car.power = 100;
+			car.moved = 1000;
+
+			이렇게 값을 바꾸지 못하도록 클로저를 활용하여 객체가 아닌 함수로 만들고, 필요한 멤버만을 return 해야한다.
+		 */
+	</script>
+	<br>
+	<script>
+		console.log("=== 11. 클로저로 변수를 보호한 자동차 객체(1) ===")
+		var createCar = function(){
+			var fuel = Math.ceil(Math.random() * 10 + 10); // 연료(L)
+			var power = Math.ceil(Math.random() * 3 + 2);  // 연비(km/L)
+			var moved = 0; 																 // 총 이동거리
+			return {
+				get moved (){ // getter만을 부여함으로써 읽기 전용 속성 부여
+					return moved;
+				},
+				run: function(){
+					var km = Math.ceil(Math.random() * 6);
+					var wasteFuel = km / power;
+					if(fuel < wasteFuel){
+						console.log('이동 불가');
+						return;
+					}
+					fuel -= wasteFuel;
+					moved += km;
+					console.log(km + 'km 이동 총 (' + moved + 'km). 남은 연료: ' + fuel);
+				}
+			};
+		};
+		var car = createCar();
+
+		car.run();
+		console.log("car.moved: ",car.moved)
+		console.log("car.fuel: ",car.fuel)
+		console.log("car.power: ",car.power);
+
+		car.fuel = 1000;
+		console.log("car.fuel: ",car.fuel)
+		car.run();
+
+		car.power = 100;
+		console.log("car.power: ",car.power);
+		car.run();
+
+		car.moved = 1000;
+		console.log("car.moved: ",car.moved)
+		car.run();
+
+		/* 
+			run 메서드를 다른 내용으로 덮어 씌우는 어뷰징은 여전히 가능한 상태이긴 하지만
+			앞 코드보단 훨씬 안전하다. 이런 어뷰징 까지 막기 위해서는 객체를 return 하기 전에 
+			미리 변경할 수 없게끔 조치를 해줘야함.
+		 */
+	</script>
+	<br/>
+	<script>
+		console.log("=== 12. 클로저로 변수를 보호한 자동차 객체(2) ===")
+		var createCar = function(){
+			var fuel = Math.ceil(Math.random() * 10 + 10); // 연료(L)
+			var power = Math.ceil(Math.random() * 3 + 2);  // 연비(km/L)
+			var moved = 0; 																 // 총 이동거리
+
+			var publicMembers = {
+				get moved (){ // getter만을 부여함으로써 읽기 전용 속성 부여
+					return moved;
+				},
+				run: function(){
+					var km = Math.ceil(Math.random() * 6);
+					var wasteFuel = km / power;
+					if(fuel < wasteFuel){
+						console.log('이동 불가');
+						return;
+					}
+					fuel -= wasteFuel;
+					moved += km;
+					console.log(km + 'km 이동 총 (' + moved + 'km). 남은 연료: ' + fuel);
+				}
+			}
+
+			Object.freeze(publicMembers);
+			return publicMembers;
+		};
+		var car = createCar();
+
+		car.run();
+		console.log("car.moved: ",car.moved)
+		console.log("car.fuel: ",car.fuel)
+		console.log("car.power: ",car.power);
+
+		car.fuel = 1000;
+		console.log("car.fuel: ",car.fuel)
+		car.run();
+
+		car.power = 100;
+		console.log("car.power: ",car.power);
+		car.run();
+
+		car.moved = 1000;
+		console.log("car.moved: ",car.moved)
+		car.run();
+
+		/* 
+			1. 함수에서 지역변수 및 내부 함수 들을 생성한다.
+			2. 외부에서 접근권한을 주고자 하는 대상들로 구성된 참조형 데이터(대상이 여럿일 때는 객체 또는 배열, 하나일때는 함수)를 리턴한다.
+			-> return한 변수들은 공개멤버가 되고 그렇지 않은 변수들은 비공개 멤버가 된다.
+		 */
+	</script>
+
+</body>
+</html>	
