@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+</head>
+<body>
+	<h1>1. call 메서드</h1>
+	<p><b>Function.prototype.call(thisArg[, arg1[, arg2,[]]])</b></p>
+	<p>메서드의 호출 주체인 함수를 즉시 실행하도록 하는 명령.</p>
+	<script>
+		console.log('=== exam1) ===');
+		// exam3-14
+		var func = function(a,b,c){
+			console.log(this,a,b,c);
+		};
+		func(1,2,3); // 전역객체 참조
+		func.call({x:1},4,5,6); // 임의의 객체 지정
+
+		// exam3-15
+		var obj = {
+			a:1,
+			method: function(x, y){
+				console.log(this.a, x, y);
+			}
+		};
+		obj.method(2,3); // 객체참조 -> 결과값 : 1 2 3 
+		obj.method.call({a:4}, 5, 6); // 임의객체 참조 -> 결과값 : 4 5 6
+	</script>
+	<br>
+	<h1>2. apply 메서드</h1>
+	<p><b>Function.prototype.apply(thisArg[, argsArray])</b></p>
+	<p>call메서드와 기능적으로 완전히 동일.<br>call 메서드는 첫번째 인자를 제외한 나머지 모든인자를 호출할 함수의
+	매개변수로 지정하는 반면, <br>apply메서드는 두번째 인자를 배열로 받아 그 배열의 요소들을 호출할 함수의 매개변수로 지정한다.</p>
+	<script>
+		console.log('=== exam2) ===');
+		// exam3-16
+		var func = function(a,b,c){
+			console.log(this, a, b, c);
+		}
+		func.apply({x:1}, [4,5,6]); // {x: 1} 4 5 6
+
+		var obj = {
+			a:1,
+			method: function(x, y){
+				console.log(this.a, x, y);
+			}
+		};
+		obj.method.apply({a:4}, [5,6]); // 4 5 6
+	</script>
+	<br>
+	<h1>3. call/apply 메서드 활용</h1>
+	<h3>1. 유사배열객체에 배열 메서드를 적용</h3>
+	<p><b>1-1) 유사배열객체(array-like object)에 배열 메서드 적용</b></p>
+	<script>
+		// exam3-17
+		console.log('=== exam3-1) ===')
+		var obj = {
+			0: 'a',
+			1: 'b',
+			2: 'c',
+			length: 3	
+		};
+		Array.prototype.push.call(obj, 'd');
+		console.log(obj);
+		// {0: 'a', 1: 'b', 2: 'c', 3: 'd', length: 4}
+
+		var arr = Array.prototype.slice.call(obj);
+		console.log(arr);
+		// (4) ['a', 'b', 'c', 'd']
+		/*
+			slice 메서드는 원래 시작인덱스값과 마지막인덱스값을 받아
+			시작값부터 마지막값의 앞부분까지의 배열요소를 추출하는 메서드 인데,
+			매개변수를 아무것도 넘기지 않을 경우에는 그냥 원본배열의 얕은 복사본을 반환한다.
+			slice가 배열메서드이기 때문에 복사본은 배열로 반환.
+		*/
+	</script>
+	<p><b>1-2) arguments.NodeList에 배열 메서드를 적용</b></p>
+	<p id="exam3-18"></p>
+	<script>
+		// exam3-18
+		console.log('=== exam3-2) ===')
+		function a(){
+			var argv = Array.prototype.slice.call(arguments);
+			argv.forEach(function(arg){
+				console.log(arg);
+			});
+		}
+		a(1,2,3); 
+		/* 전달받은 argument 배열로 반환
+		1
+		2
+		3
+		*/
+
+		document.getElementById('exam3-18').innerHTML = '<span>a</span><span>b</span><span>c</span>';
+		var nodeList = document.querySelectorAll('span');
+		var nodeArr = Array.prototype.slice.call(nodeList);
+		nodeArr.forEach(function(node){
+			console.log(node);
+		})
+		/* 전달받은 argument 배열로 반환
+			<span>a</span>
+			<span>b</span>
+			<span>c</span>
+		*/
+	</script>
+	<p><b>1-3) 문자열에 배열 메서드 적용</b></p>
+	<script>
+		// exam3-18
+		console.log('=== exam3-19) ===');
+		var str = 'abc def';
+
+		//Array.prototype.push.call(str, ', pushed string');  // Error : Cannot assign to read only property 'length' of object '[object String]'
+		/*
+			문자열의 경우 length프로퍼티가 읽기 전용이기 때문에 원본 문자열에 변경을 가하는
+			push, pop, shift, unshift, splice등 에는 에러를 던지며 
+			concat처럼 대상이 반드시 배열이어야하는 경우에는 에러는 나진 않지만 결과를 얻을수 없음.
+		*/
+
+		var concat = Array.prototype.concat.call(str, 'string')
+		console.log(concat); // [String {'abc def'}, 'string']
+
+		var every = Array.prototype.every.call(str, function(char){
+			return char !== ' ';
+		});
+		console.log(every); // false
+
+		var some = Array.prototype.some.call(str, function(char){
+			return char === '';
+		})
+		console.log(some); // true
+
+		var newArr = Array.prototype.map.call(str, function(char){
+			return char + '!';
+		});
+		console.log(newArr);
+		// ['a!', 'b!', 'c!', ' !', 'd!', 'e!', 'f!']
+
+		var newStr = Array.prototype.reduce.apply(str, [
+			function(string, char, i){ return string + char + i; },
+			''
+		]);
+		console.log(newStr);
+		// a0b1c2 3d4e5f6
+	</script>
+	<p><b>1-4) ES6의 Array.from 메서드</b></p>
+	<script>
+		console.log('=== exam3-20) ===');
+		var obj = {
+			0: 'a',
+			1: 'b',
+			2: 'c',
+			length: 3
+		};
+		var arr = Array.from(obj);
+		console.log(arr);
+		/*
+			ES6에서는 유사배열객체 또는 순회 가능한 모든 종류의 데이터 타입을 배열로 전환하는 Array.from 메서드 도입
+		*/
+	</script>
+	<h3>2. 생성자 내부에서 다른 생성자 호출</h3>
+	<p>2-1)생성자 내부에 다른 생성자와 공통된 내용이 있을 경우 call 또는 apply를 이용하여 다른 생성자 호출이 가능함.</p>
+	<script>
+		console.log('=== exam3-21) ===');
+		function Person(name, gender){
+			this.name = name;
+			this.gender = gender;
+		}
+
+		function Student(name, gender, school){
+			Person.call(this, name, gender);
+			this.school = school;
+		}
+
+		function Employee(name, gender, company){
+			Person.apply(this, [name, gender]);
+			this.company = company;
+		}
+
+		var by = new Student('보영', 'female', '단국대');
+		var jn = new Employee('재난', 'male', '구골');
+	</script>
+	<h3>3. 여러 인수를 묶어 하나의 배열로 전달하고 싶을 때</h3>
+	<p><b>1.최대/최솟값을 구하는 코드를 직접 구현</b></p>
+	<script>
+		console.log('=== exam3-22) ===');
+		var numbers = [10, 20, 3, 16, 45];
+		var max = min = numbers[0];
+		numbers.forEach(function(number){
+			if(number > max){
+				max = number;
+			}
+			if(number<min){
+				min = number;
+			}
+		});
+		console.log(max,min) // 45 3
+		/*
+			apply를 사용하지 않는다면 직접 구현하게되고 코드가 길어지고 가독성도 떨어진다.
+		*/
+	</script>
+	<p><b>2. 여러 인수를 받는 메서드(Math.max/Math.min)에 apply를 적용</b></p>
+	<script>
+		console.log('=== exam3-23) ===');
+		var numbers = [10, 20, 3, 16, 45];
+		var max = Math.max.apply(null, numbers);
+		var min = Math.min.apply(null, numbers);
+		console.log(max, min); // 45 3
+	</script>
+	<p><b>3. ES6의 펼치기 연산자 활용</b></p>
+	<script>
+		console.log('=== exam3-24) ===');
+		const numbers_ = [10, 20, 3, 16, 45];
+		const max_ = Math.max(...numbers_);
+		const min_ = Math.min(...numbers_);
+		console.log(max_, min_); // 45 3
+		/*
+			call/apply메서드는 명시적으로 별도의 this를 바인딩 하면서 함수 또는 메서드를 실행하는 훌륭한 방법이지만
+			오히려 이로인해 this를 예측하기 어렵게 만들어 코드 해석을 방해한다는 단점이 있다.
+			그럼에도 불구하고 ES5이하의 환경에서는 마땅한 대안이 없기 때문에 실무에서 광범위하게 활용됨.
+		*/
+	</script>
+	<h1>4. bind 메서드</h1>
+	<h3>1. this 지정과 부분 적용 함수 구현</h3>
+	<p>es5에서 추가된 기능으로 call과 비슷하지만 즉시 호출하지는 않고 <br>
+	넘겨받은 this 및 인수들을 바탕으로 새로운 함수를 반환하기만 하는 메서드.</p>
+	<script>
+		console.log('=== exam3-25) ===');
+		var func = function(a,b,c,d){
+			console.log(this,a,b,c,d);
+		}
+		func(1,2,3,4);
+
+		var bindFunc1 = func.bind({x:1});
+		bindFunc1(5,6,7,8)
+
+		var bindFunc2 = func.bind({x:1}, 4, 5);
+		bindFunc2(6,7);
+		bindFunc2(8,9);
+	</script>
+	<h3>2. name 프로퍼티</h3>
+	<p>bind메서드를 적용하여 새로 만든 함수는 name프로퍼티에 동사 bind의 수동태인 <br>
+		bound라는 접두어가 붙는다. 따라서 call이나 apply보다 코드 추적에 수월하다.</p>
+	<script>
+		console.log('=== exam3-26) ===');
+		var func2 = function(a,b,c,d){
+			console.log(this,a,b,c,d);
+		}
+		var bindFunc3 = func.bind({x:1}, 4, 5);
+		console.log(func.name);
+		console.log(bindFunc3.name);
+	</script>
+	<h3>3. 상위 컨텍스트의 this를 내부함수나 콜백함수에 전달하기</h3>
+	<p>call, apply, bind 메서드를 이용하면 메서드 내부함수에서<br>
+		메서드의 this를 그대로 바라보게 할 수 있다.</p>
+	<script>
+		console.log('=== exam3-27) ===');
+		var obj = {
+			outer : function(){
+				console.log(this);
+				var innerFunc = function(){
+					console.log(this);
+				};
+				innerFunc.call(this);
+			}
+		};
+		obj.outer();
+
+		var obj2 = {
+			outer : function(){
+				var innerFunc = function(){
+					console.log(this);
+				}.bind(this);
+				innerFunc();
+			}
+		};
+		obj2.outer();
+
+		console.log('=== exam3-28) ===');
+		var obj3 = {
+			logThis: function(){
+				console.log(this);
+			},
+			logThisLater1: function(){
+				setTimeout(this.logThis, 500);
+			},
+			logThisLater2: function(){
+				setTimeout(this.logThis.bind(this), 1000);
+			}
+		};
+		// obj3.logThisLater1();
+		// obj3.logThisLater2();
+		
+		/*
+			콜백함수를 인자로 받는 함수나 메서드 중에서 기본적으로 콜백함수 내에서의 this에
+			관여하는 함수 또는 메서드에 대해서도 bind메서드를 이용하면 this값을 사용자의 입맛에 맞게 바꿀 수 있음. 
+			*/
+	</script>
+	<h1>5. 화살표 함수의 예외사항</h1>
+	<p>ES6에 새로 도입된 화살표 함수는 실행 컨텍스트 생성 시 this를 바인딩하는 과정이 제외됐다<br/>
+	 이 함수 내부에는 this가 아예 없으며 접근하고자 하면 스코프체인상 가장 가까운 this에 접근한다.</p>
+	<script>
+		console.log('=== exam3-29) ===');
+		var obj = {
+			outer : function(){
+				console.log(this);
+				var innerFunc = () => {
+					console.log(this);
+				};
+				innerFunc();
+			}
+		};
+		obj.outer();
+	</script>
+	<h1>6. 별도의 인자로 this를 받는 경우(콜백함수 내에서의 this)</h1>
+	<p></p>
+	<script>
+		console.log('=== exam3-30) ===');
+		var report ={
+			sum: 0,
+			count: 0,
+			add: function(){
+				var args = Array.prototype.slice.call(arguments);
+				args.forEach(function(entry){
+					this.sum += entry;
+					++this.count;
+				}, this);
+			},
+			average: function (){
+				return this.sum / this.count;
+			}
+		};
+		report.add(60,85,95);
+		console.log(report.sum, report.count, report.average());
+
+		/*
+			thisArgs를 인자로 받는 메서드
+			forEach, map, filter, some, every, find, findIndex, flatMap, from
+			출첵
+		*/
+	</script>
+</body>
+</html>
