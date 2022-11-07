@@ -258,6 +258,100 @@
 		};
 		var addPartial = add .bind(null, 1, 2, 3, 4, 5);
 		console.log(addPartial(6, 7, 8, 9, 10)); // 55
+
+		/* 
+			addPartial 함수는 인자 5개를 미리 적용하고, 추후 추가적으로 인자들을
+			전달하면 모든 인자를 모아 원래의 함수가 실행되는 부분 적용함수이다.
+			그러나 this의 값을 변경할 수밖에 없기 때문에 메서드에서는 사용할 수 없을것 같다.
+		 */
+	</script>
+		<br/>
+	<script>
+		console.log("=== 14. bind 메서드를 활용한 부분 적용 함수 ===");
+		var partial = function(){
+			var originalPartialArgs = arguments;
+			var func = originalPartialArgs[0];
+
+			if(typeof func != 'function'){
+				throw new Erro('첫 번째 인자가 함수가 아닙니다')
+			}
+			return function(){
+				var partialArg = Array.prototype.slice.call(originalPartialArgs, 1);
+				var restArgs = Array.prototype.slice.call(arguments);
+				return func.apply(this, partialArg.concat(restArgs));
+			}
+		}
+
+		var add = function(){
+			var result = 0;
+			for (let i=0; i<arguments.length; i++){
+				result += arguments[i];
+			}
+			return result;
+		}
+
+		var addPartial = partial(add, 1,2,3,4,5);
+		console.log(addPartial(6,7,8,9,10)); // 55
+
+		var dog = {
+			name: '강아지',
+			greet: partial(function(prefix, suffix){
+				console.log(prefix + this.name + suffix)
+				// return prefix + this.name + suffix;
+			}, '왈왈, '),
+		};
+
+		dog.greet('입니다!');
+		/* 
+			첫번째 인자에는 원본 함수를, 두번쨰 인자 이후부터는 미리 적용할 인자들을 전달하고,
+			반환할 함수에서는 다시 나머지 인자들을 받아 이들을 한데 모아(concat) 원본 함수를 호출(apply)한다.
+			또한 실행 시점의 this를 그대로 반영함으로써 this에는 아무런 영향을 주지 않는다.
+		 */
+	</script>
+	<script>
+		console.log("=== 15. bind 메서드를 활용한 부분 적용 함수 ===");
+		Object.defineProperty(window, '_', {
+			value: 'EMPTY_SPACE',
+			writable: false,
+			configurable: false,
+			enumerable: false
+		});
+
+		var partial2 = function(){
+			var originalPartialArgs = arguments;
+			var func = originalPartialArgs[0];
+			if(typeof func !== 'function'){
+				throw new Error('첫 번째 인자가 함수가 아닙니다');
+			}
+			return function(){
+				var partialArgs = Array.prototype.slice.call(originalPartialArgs, 1);
+				var restArgs = Array.prototype.slice.call(arguments);
+				for(var i = 0; i<partialArgs.length; i++){
+					if(partialArgs[i] === _){
+						partialArgs[i] = restArgs.shift();
+					}
+				}
+				return func.apply(this, partialArgs.concat(restArgs));
+			}
+		};
+
+		var add = function(){
+			var result = 0;
+			for (let i=0; i<arguments.length; i++){
+				result += arguments[i];
+			}
+			return result;
+		}
+
+		var dog = {
+			name: '강아지',
+			greet: partial2(function(prefix, suffix){
+				console.log(prefix + this.name + suffix)
+				// return prefix + this.name + suffix;
+			}, '왈왈, '),
+		};
+
+		dog.greet('배고파요!');
 	</script>
 
 </body>
