@@ -343,6 +343,9 @@
 			return result;
 		}
 
+		var addPartial = partial2(add, 1, 2, _, 4, 5, _, _, 8, 9);
+		console.log(addPartial(3,6,7,10));
+
 		var dog = {
 			name: '강아지',
 			greet: partial2(function(prefix, suffix){
@@ -352,6 +355,91 @@
 		};
 
 		dog.greet('배고파요!');
+	</script>
+	<script>
+		console.log("=== 16. 디바운스 ===");
+		var debounce = function(eventName, func, wait){
+			var timeoutId = null;
+			return function(event){
+				var self = this;
+				console.log(eventName, 'event 발생');
+				clearTimeout(timeoutId);
+				timeoutId = setTimeout(func.bind(self, event), wait);
+			}
+		};
+
+		var moveHandler = function(e){
+			console.log("move event 처리");
+		}
+
+		var wheelHandler = function(e){
+			console.log("wheel event처리");
+		}
+
+		document.body.addEventListener('mousemove', debounce('move', moveHandler, 500));
+		document.body.addEventListener('mousewheel', debounce('wheel', wheelHandler, 700));
+		/* 
+			eventName: 출력용도, func : 실행할 함수, wait: 마지막으로 발생한 이벤트인지 여부 판단을 위한 대기시간.
+			내부에선 timeoutId 변수를 생성하고 클로저로 EventListener에 의해 호출될 함수를 반환함.
+			반홯날 함수 내부에선 setTimeout을 사용하기 위해 this를 별도 변수에 담고 clearTimeout으로 무조건 대기큐를 초기화 하게 함.
+			setTimeout으로 wait만큼 시간을 지연시킨 후 원래의 func를 호출
+
+			wait 시가닝 경과하기 이전에 동일한 이벤트가 발생하면 대기열을 초기화하고 다음이벤트를 다시 대기열에 등록한다.
+			각 이벤트가 바로 이전 이벤트로부터 wait시간 이내에 발생하는 한 마지막에 발생한 이벤트만이 초기화 되지않고 무사히 실행된다.
+		 */
+	</script>
+	<script>
+		console.log("=== 17. 커링함수(1) ===");
+		var curry3 = function(func){
+			return function(a){
+				return function(b){
+					return func(a, b);
+				}
+			}
+		}
+
+		var getMaxWith10 = curry3(Math.max)(10);
+		console.log(getMaxWith10(8));
+		console.log(getMaxWith10(25));
+
+		var getMinWith10 = curry3(Math.min)(10);
+		console.log(getMinWith10(8));
+		console.log(getMaxWith10(25));
+
+		/*
+			es6에선 
+			var curry5 = func => a => b => c => d => e => func(a,b,c,d,e);
+			이런식으로도 사용할 수 있다.
+			이러한 방식으로 지연실행이라는 함수형 프로그래밍을 할 수 있다. 
+		*/
+
+		var getInformation = function(baseUrl){	// 서버에 요청할 주소의 기본 url
+			return function(path){								// path 값
+				return function(id){								// id 값
+					return fetch(baseUrl + path + '/' + id); // 실제 서버에 정보를 요청
+				}
+			}
+		}
+		
+		// es6
+		var getInformation = baseUrl => path => id => fetch(baseUrl + path + '/' + id);
+
+		/* 
+			HTML5의 fetch함수는 url을 받아 해당 url에 HTTP 요청을 한다.
+			rest api를 이용할 경오 baseUrl은 고정되지만 나머지 path나 id값은 매우 많을 수 있다.
+			baseUrl같은 공통 요소는 기억해 두고 특정값(id)만으로 서버요청을 수행하는 함수를 만들어놓는편이 효율성이나 가독성면에서 좋다.
+		 */
+
+		var imageUrl = 'http://imageAddress.com/';
+		var productUrl = 'http://productAddress.com/';
+
+		var getImage = getInformation(imageUrl); // http://imageAddress.com/
+		var getEmotion = getImage('emociton'); // http://imageAddress.com/emociton
+		var getIcon = getImage('icon'); // // http://imageAddress.com/icon
+
+		var emoticon1 = getEmoticon(100); // http://imageAddress.com/emoticon/100
+		var emoticon2 = getEmoticon(102); // http://imageAddress.com/emoticon/102
+		var icon1 = getIcon(205);					// http://imageAddress.com/icon/205
 	</script>
 
 </body>
