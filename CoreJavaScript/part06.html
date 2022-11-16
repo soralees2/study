@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+		console.log("=== 1. Person.prototype ===")
+    var Person = function(name){
+      this._name = name;
+    }
+    Person.prototype.getName = function(){
+      return this._name;
+    }
+    /* 
+      Person의 인스턴스는 __proto__ 프로퍼티를 통해 getName을 호출할 수 있다.
+      instance의 __proto__ 가 Constructor의 prototype프로퍼티를 참조함으로 결국 둘은 같은 객체를 바라보기 때문.
+
+      var suzi = new Person();
+      suzi.__proto__.getName(); --> 실행됨.
+     */
+	</script>
+	<br>
+  <script>
+		console.log("=== 2. prototype과 __proto__ ===")
+    var Constructor = function(name){
+      this.name = name;
+    }
+    Constructor.prototype.method1 = function(){};
+    Constructor.prototype.property1 = 'Constructor Prototype Property';
+
+    var instance = new Constructor('Instance');
+    console.dir(Constructor);
+    console.dir(instance);
+	</script>
+	<br>
+</body>
+</html>
